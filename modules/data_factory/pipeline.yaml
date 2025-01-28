@@ -1,0 +1,25 @@
+- name: CopyFromSourceToDestination
+  type: Copy
+  typeProperties:
+    source:
+      type: BinarySource
+      recursive: true
+    sink:
+      type: BinarySink
+    enableStaging: false
+  policy:
+    timeout: "7.00:00:00"
+    retry: 0
+    retryIntervalInSeconds: 30
+    secureInput: false
+    secureOutput: false
+  scheduler:
+    frequency: Day
+    interval: 1
+  external: true
+  inputs:
+    - referenceName: source_dataset
+      type: DatasetReference
+  outputs:
+    - referenceName: destination_dataset
+      type: DatasetReference

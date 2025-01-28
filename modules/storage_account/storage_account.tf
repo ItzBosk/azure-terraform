@@ -20,6 +20,7 @@ resource "azurerm_storage_container" "create_container" {
   container_access_type = var.container_access_type
 }
 
+# create a new blob, in this case a simple file
 resource "azurerm_storage_blob" "create_test_file" {
   name                   = "test.txt"
   storage_account_name   = azurerm_storage_account.storage.name
@@ -28,6 +29,7 @@ resource "azurerm_storage_blob" "create_test_file" {
   source_content = "Hello CodeWithYu Community!"
 }
 
+# link for the data factory
 output "storage_account_key" {
   value = azurerm_storage_account.storage.primary_access_key
 }

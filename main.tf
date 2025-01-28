@@ -1,3 +1,4 @@
+# Terraform project settings
 terraform {
   required_providers {
     azurerm = {
@@ -9,6 +10,7 @@ terraform {
   required_version = ">= 1.1.0"
 }
 
+# specific provider settings
 provider "azurerm" {
   features {}
 }
@@ -19,8 +21,10 @@ resource "azurerm_resource_group" "rg" {
   tags     = var.tags
 }
 
+# link module to project root
 module "storage_account" {
-  source = "./modules/storage_account/storage_account"
+  # module path
+  source = "./modules/storage_account"
 
   resource_group_name     = var.resource_group_name
   storage_account_name    = var.storage_account_name
@@ -34,7 +38,7 @@ module "storage_account" {
 }
 
 module "data_factory" {
-  source = "./modules/data_factory/data_factory"
+  source = "./modules/data_factory"
 
   df_name              = var.df_name
   location             = var.location

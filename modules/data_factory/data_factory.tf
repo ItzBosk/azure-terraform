@@ -3,6 +3,7 @@ resource "azurerm_data_factory" "adf" {
   resource_group_name = var.resource_group_name
   location            = var.location
 
+  # by default Azure manages access security
   identity {
     type = "SystemAssigned"
   }
@@ -18,6 +19,7 @@ data "azurerm_storage_account" "destination_folder_storage" {
   resource_group_name = var.resource_group_name
 }
 
+# connect account storage to ADF
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "source" {
   name              = "source-storage"
   data_factory_id   = azurerm_data_factory.adf.id
@@ -30,7 +32,12 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "destination" 
   connection_string = data.azurerm_storage_account.destination_folder_storage.primary_connection_string
 }
 
-#source and sink dataset to blob storage
+#############################
+
+# Source and sink dataset to blob storage
+
+#############################
+
 resource "azurerm_data_factory_dataset_binary" "source_dataset" {
 
   name                = "source_dataset"
@@ -55,56 +62,76 @@ resource "azurerm_data_factory_dataset_binary" "destination_dataset" {
   }
 }
 
+#############################
+
+# Pipeline
+
+#############################
+
 resource "azurerm_data_factory_pipeline" "copy_data" {
 
   name            = "copy_data_pipeline"
   data_factory_id = azurerm_data_factory.adf.id
 
   activities_json = <<JSON
-[
-  {
-    "name": "CopyFromSourceToDestination",
-    "type": "Copy",
-    "typeProperties": {
-      "source": {
-        "type": "BinarySource",
-        "recursive": true
-      },
-      "sink": {
-        "type": "BinarySink"
-      },
-      "enableStaging": false
-    },
-    "policy": {
-      "timeout": "7.00:00:00",
-      "retry": 0,
-      "retryIntervalInSeconds": 30,
-      "secureInput": false,
-      "secureOutput": false
-    },
-    "scheduler": {
-      "frequency": "Day",
-      "interval": 1
-    },
-    "external": true,
-     "inputs": [
+    [
       {
-        "referenceName": "source_dataset",
-        "type": "DatasetReference"
-      }
-    ],
-    "outputs": [
-      {
-        "referenceName": "destination_dataset",
-        "type": "DatasetReference"
+        "name": "CopyFromSourceToDestination",
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "BinarySource",
+            "recursive": true
+          },
+          "sink": {
+            "type": "BinarySink"
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "7.00:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "scheduler": {
+          "frequency": "Day",
+          "interval": 1
+        },
+        "external": true,
+        "inputs": [
+          {
+            "referenceName": "source_dataset",
+            "type": "DatasetReference"
+          }
+        ],
+        "outputs": [
+          {
+            "referenceName": "destination_dataset",
+            "type": "DatasetReference"
+          }
+        ]
       }
     ]
-  }
-]
-JSON
+    JSON
 
   depends_on = [
     azurerm_data_factory_dataset_binary.source_dataset,
     azurerm_data_factory_dataset_binary.destination_dataset,
   ]
 }
+
+# pipeline using YAML file
+#resource "azurerm_data_factory_pipeline" "copy_data" {
+#
+#  name            = "copy_data_pipeline"
+#  data_factory_id = azurerm_data_factory.adf.id
+#
+#  activities_json = jsonencode(yamldecode(file("${path.module}/pipeline.yaml")))
+#
+#  depends_on = [
+#    azurerm_data_factory_dataset_binary.source_dataset,
+#    azurerm_data_factory_dataset_binary.destination_dataset,
+#  ]
+#}
